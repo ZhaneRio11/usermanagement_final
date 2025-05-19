@@ -1,3 +1,5 @@
+// _models/alert.ts
+
 export class Alert {
     id: string;
     type: AlertType;
@@ -7,13 +9,18 @@ export class Alert {
     fade: boolean;
 
     constructor(init?: Partial<Alert>) {
-        Object.assign(this, init);
+        Object.assign(this, {
+            autoClose: true,          // Default values
+            keepAfterRouteChange: false,
+            fade: true,
+            ...init                  // Override with provided values
+        });
     }
 }
 
 export enum AlertType {
-    Success,
-    Error,
-    Info,
-    Warning
+    Success = 'success',
+    Error = 'error',
+    Info = 'info',
+    Warning = 'warning'
 }

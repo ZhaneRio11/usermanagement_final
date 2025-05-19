@@ -1,9 +1,21 @@
-export interface Employee {
-    id?: string;
+// _models/employee.ts
+import { Account } from './account';
+import { Department } from './department';
+
+export class Employee {
+    id: number;
     employeeId: string;
-    account: string;
     position: string;
-    department: string;
-    hireDate: string;
-    status: 'Active' | 'Inactive';
+    hireDate: Date;
+    status: string;
+    created: Date;
+    updated: Date;
+    account: Account;
+    department: Department;
+
+    constructor(init?: Partial<Employee>) {
+        if (init) {
+            Object.assign(this, init);
+        }
+    }
 }

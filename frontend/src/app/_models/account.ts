@@ -1,19 +1,24 @@
+// _models/account.ts
+
 import { Role } from './role';
 
 export class Account {
     id: string;
-    title: string;
+    title: string | null;
     firstName: string;
     lastName: string;
     email: string;
     role: Role;
-    isActive: boolean; 
+    status: string;
     jwtToken?: string;
-
-    isActivating: boolean;
-    isDeactivating: boolean;
+    isVerified?: boolean;
+    refreshTokens?: string[];
+    dateCreated?: Date;
+    dateUpdated?: Date;
 
     constructor(init?: Partial<Account>) {
-        Object.assign(this, init);
-    }  
+        if (init) {
+            Object.assign(this, init);
+        }
+    }
 }

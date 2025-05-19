@@ -1,29 +1,33 @@
+// _services/department.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Department } from '@app/_models/department';
+import { Department } from '@app/_models';
+
+const baseUrl = `${environment.apiUrl}/departments`;
 
 @Injectable({ providedIn: 'root' })
 export class DepartmentService {
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
-    getAll() {
-        return this.http.get<Department[]>(`${environment.apiUrl}/departments`);
+    getAll(): Observable<Department[]> {
+        return this.http.get<Department[]>(baseUrl);
     }
 
-    getById(id: string) {
-        return this.http.get<Department>(`${environment.apiUrl}/departments/${id}`);
+    getById(id: number): Observable<Department> {
+        return this.http.get<Department>(`${baseUrl}/${id}`);
     }
 
-    create(department: Department) {
-        return this.http.post(`${environment.apiUrl}/departments`, department);
+    create(params: any): Observable<Department> {
+        return this.http.post<Department>(baseUrl, params);
     }
 
-    update(id: string, department: Department) {
-        return this.http.put(`${environment.apiUrl}/departments/${id}`, department);
+    update(id: number, params: any): Observable<Department> {
+        return this.http.put<Department>(`${baseUrl}/${id}`, params);
     }
 
-    delete(id: string) {
-        return this.http.delete(`${environment.apiUrl}/departments/${id}`);
+    delete(id: number): Observable<any> {
+        return this.http.delete(`${baseUrl}/${id}`);
     }
-} 
+}

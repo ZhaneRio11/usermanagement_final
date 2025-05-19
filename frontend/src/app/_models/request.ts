@@ -1,21 +1,22 @@
+// _models/request.ts
 import { Employee } from './employee';
 
-export interface RequestItem {
+export class Request {
     id: number;
-    description: string;
-    quantity: number;
-    requestId: number;
-}
-
-export interface Request {
-    id: number;
-    type: 'equipment' | 'leave' | 'resource' | 'other';
-    status: 'Pending' | 'Approved' | 'Rejected';
-    description: string;
-    createdAt: string;
-    updatedAt: string;
+    type: string;
+    items: any[];
+    status: string;
+    created: Date;
+    updated: Date;
     employeeId: number;
-    isActive: boolean;
-    employee?: Employee;
-    items?: RequestItem[];
-} 
+    employee: {
+        id: number;
+        employeeId: string;
+    };
+
+    constructor(init?: Partial<Request>) {
+        if (init) {
+            Object.assign(this, init);
+        }
+    }
+}

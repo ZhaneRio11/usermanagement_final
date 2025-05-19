@@ -1,3 +1,5 @@
+// account.model
+
 const { DataTypes } = require('sequelize');
 
 module.exports = model;
@@ -9,31 +11,36 @@ function model(sequelize) {
         title: { type: DataTypes.STRING, allowNull: false },
         firstName: { type: DataTypes.STRING, allowNull: false },
         lastName: { type: DataTypes.STRING, allowNull: false },
-        acceptTerms: { type: DataTypes.BOOLEAN },
+        acceptTerms: {type: DataTypes.BOOLEAN},
         role: { type: DataTypes.STRING, allowNull: false },
+        status: { 
+            type: DataTypes.STRING, 
+            allowNull: false, 
+            defaultValue: 'active' // Default value for new accounts
+        },
         verificationToken: { type: DataTypes.STRING },
         verified: { type: DataTypes.DATE },
         resetToken: { type: DataTypes.STRING },
         resetTokenExpires: { type: DataTypes.DATE },
-        isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
         passwordReset: { type: DataTypes.DATE },
         created: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW },
         updated: { type: DataTypes.DATE },
         isVerified: {
             type: DataTypes.VIRTUAL,
-            get() { return true; }
+            get() { return !!(this.verified || this.passwordReset); }
         }
     };
 
     const options = {
-        // disable default timestamp fields (createdAt and updatedAt)
+        //disable default timestamp fields (createdAt and UpdatedAt)
         timestamps: false,
         defaultScope: {
-            // exclude password hash by default
+            //exclude password hash by default
             attributes: { exclude: ['passwordHash'] }
         },
+
         scopes: {
-            // include hash with this scope
+            //include hash with this scope
             withHash: { attributes: {}, }
         }
     };

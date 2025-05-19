@@ -1,146 +1,114 @@
+// admin/employees/transfer.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
-import { EmployeeService } from '@app/_services/employee.service';
-import { DepartmentService } from '@app/_services/department.service';
-import { Employee } from '@app/_models/employee';
 
-interface TransferResponse {
-    message: string;
-    id: string;
-    employeeId: string;
-    department: string;
-    account: string;
-}
+import { DepartmentService, EmployeeService, AlertService, WorkflowService } from '@app/_services';
+import { Department } from '@app/_models';
 
-@Component({
-  selector: 'app-transfer',
-  templateUrl: './transfer.component.html',
-  styles: [`
-    .modal-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 1040;
-    }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1050;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  `]
-})
+@Component({ templateUrl: 'transfer.component.html' })
 export class TransferComponent implements OnInit {
-  employee: Employee;
-  departments: any[] = [];
-  departmentId: number;
-  loading = false;
-  submitted = false;
-  error: string;
-  success: string;
+    form: FormGroup;
+    id: number;
+    loading = false;
+    submitted = false;
+    departments: Department[];
+    employee: any;
+    oldDepartmentId: number;
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private employeeService: EmployeeService,
-    private departmentService: DepartmentService
-  ) { }
+    constructor(
+        private formBuilder: FormBuilder,
+        private route: ActivatedRoute,
+        private router: Router,
+        private departmentService: DepartmentService,
+        private employeeService: EmployeeService,
+        private alertService: AlertService,
+        private workflowService: WorkflowService
+    ) { }
 
-  ngOnInit() {
-    const employeeId = this.route.snapshot.params['id'];
-    if (!employeeId) {
-      this.error = 'Employee ID is required';
-      return;
-    }
-    this.loadEmployee(employeeId);
-    this.loadDepartments();
-  }
+    ngOnInit() {
+        this.id = this.route.snapshot.params['id'];
 
-  private loadEmployee(id: string) {
-    this.loading = true;
-    this.employeeService.getById(id)
-      .pipe(first())
-      .subscribe({
-        next: (employee) => {
-          this.employee = employee;
-          // Convert department string to number if it's a valid number
-          const deptId = parseInt(employee.department);
-          this.departmentId = !isNaN(deptId) ? deptId : null;
-          this.loading = false;
-        },
-        error: (error) => {
-          this.error = error.error?.message || 'Error loading employee data';
-          this.loading = false;
-          console.error('Error loading employee:', error);
-        }
-      });
-  }
+        this.form = this.formBuilder.group({
+            departmentId: ['', Validators.required]
+        });
 
-  private loadDepartments() {
-    this.departmentService.getAll()
-      .pipe(first())
-      .subscribe({
-        next: (departments) => this.departments = departments,
-        error: (error) => {
-          this.error = error.error?.message || 'Error loading departments';
-          console.error('Error loading departments:', error);
-        }
-      });
-  }
+        // Load departments for dropdown
+        this.departmentService.getAll()
+            .pipe(first())
+            .subscribe(departments => this.departments = departments);
 
-  transfer() {
-    this.submitted = true;
-    this.error = null;
-    this.success = null;
-
-    // Validate department selection
-    if (!this.departmentId) {
-      this.error = 'Please select a department';
-      return;
+        // Load employee details
+        this.employeeService.getById(this.id)
+            .pipe(first())
+            .subscribe(employee => {
+                this.employee = employee;
+                this.oldDepartmentId = employee.department?.id;
+                this.form.patchValue({ departmentId: this.oldDepartmentId });
+            });
     }
 
-    // Validate employee exists
-    if (!this.employee || !this.employee.employeeId) {
-      this.error = 'Employee data is not available';
-      return;
+    get f() { return this.form.controls; }
+
+    onSubmit() {
+        this.submitted = true;
+        this.alertService.clear();
+
+        if (this.form.invalid) {
+            return;
+        }
+
+        this.loading = true;
+        const newDepartmentId = this.form.value.departmentId;
+        
+        this.employeeService.transfer(this.id, newDepartmentId)
+            .pipe(first())
+            .subscribe({
+                next: () => {
+                    // Create workflow record after successful transfer
+                    this.createTransferWorkflow(newDepartmentId);
+                    
+                    this.alertService.success('Transfer successful', { keepAfterRouteChange: true });
+                    this.router.navigate(['../../'], { relativeTo: this.route });
+                },
+                error: error => {
+                    this.alertService.error(error);
+                    this.loading = false;
+                }
+            });
     }
 
-    this.loading = true;
-    console.log('Initiating transfer:', { 
-      employeeId: this.employee.employeeId, 
-      departmentId: this.departmentId,
-      currentDepartment: this.employee.department 
-    });
+    private createTransferWorkflow(newDepartmentId: number) {
+        const oldDeptName = this.departments.find(d => d.id === this.oldDepartmentId)?.name || 'Unknown';
+        const newDeptName = this.departments.find(d => d.id === newDepartmentId)?.name || 'Unknown';
+        
+        const workflowParams = {
+            type: 'Transfer',
+            status: 'completed',
+            details: {
+                message: `Employee transfer completed`,
+                employeeId: this.id,
+                fromDepartment: {
+                    id: this.oldDepartmentId,
+                    name: oldDeptName
+                },
+                toDepartment: {
+                    id: newDepartmentId,
+                    name: newDeptName
+                },
+                timestamp: new Date().toISOString()
+            },
+            employeeId: this.id
+        };
 
-    this.employeeService.transfer(this.employee.employeeId, this.departmentId)
-      .pipe(first())
-      .subscribe({
-        next: (response: TransferResponse) => {
-          console.log('Transfer response:', response);
-          this.success = response.message || 'Employee transferred successfully';
-          this.loading = false;
-          setTimeout(() => {
-            this.router.navigate(['/admin/employees']);
-          }, 1500);
-        },
-        error: (error) => {
-          console.error('Transfer error:', error);
-          this.error = error.error?.message || 'Error transferring employee';
-          this.loading = false;
-        }
-      });
-  }
+        console.log('Creating workflow with params:', workflowParams);
 
-  cancel() {
-    this.router.navigate(['/admin/employees']);
-  }
-} 
+        this.workflowService.create(workflowParams)
+            .pipe(first())
+            .subscribe({
+                next: () => console.log('Workflow record created for transfer'),
+                error: error => console.error('Error creating workflow record', error)
+            });
+    }
+}

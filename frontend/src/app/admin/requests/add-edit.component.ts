@@ -1,76 +1,82 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { first } from 'rxjs/operators';
-import { RequestService } from '@app/_services/request.service';
-import { Request, RequestItem } from '@app/_models/request';
-import { AccountService } from '@app/_services/account.service';
-import { EmployeeService } from '@app/_services/employee.service';
-import { Employee } from '@app/_models/employee';
 
-@Component({
-    templateUrl: 'add-edit.component.html',
-    styleUrls: ['./add-edit.component.css']
-})
+import { Request } from '@app/_models';
+import { RequestService, EmployeeService, AlertService } from '@app/_services';
+import { WorkflowService } from '@app/_services';
+
+@Component({ templateUrl: 'add-edit.component.html' })
 export class AddEditComponent implements OnInit {
     form: FormGroup;
     id: number;
     isAddMode: boolean;
     loading = false;
     submitted = false;
-    requestTypes = ['equipment', 'leave', 'resource', 'other'];
-    employees: Employee[] = [];
+    employees: any[] = [];
 
     constructor(
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
         private requestService: RequestService,
-        private accountService: AccountService,
-        private employeeService: EmployeeService
-    ) { }
+        private employeeService: EmployeeService,
+        private alertService: AlertService,
+        private workflowService: WorkflowService // Add this
+    ) {}
 
     ngOnInit() {
         this.id = this.route.snapshot.params['id'];
         this.isAddMode = !this.id;
 
-        this.form = this.formBuilder.group({
-            type: ['', Validators.required],
-            description: ['', Validators.required],
-            employeeId: ['', Validators.required],
-            items: this.formBuilder.array([])
-        });
+        // Load all employees
+        this.employeeService.getAll()
+            .pipe(first())
+            .subscribe(employees => {
+                this.employees = employees;
+            });
 
-        this.employeeService.getAll().subscribe(employees => {
-            this.employees = employees;
+        this.form = this.formBuilder.group({
+            employeeId: ['', Validators.required], // ✅ Reactive control
+            type: ['', Validators.required],
+            status: ['approved', Validators.required],  // approved by default (when created by admin)
+            items: this.formBuilder.array([this.createItem()])
         });
 
         if (!this.isAddMode) {
-            this.loading = true;
             this.requestService.getById(this.id)
                 .pipe(first())
-                .subscribe(request => {
-                    this.form.patchValue(request);
-                    if (request.items) {
-                        request.items.forEach(item => {
-                            this.addItem(item);
-                        });
+                .subscribe(x => {
+                    while (this.items.length) {
+                        this.items.removeAt(0);
                     }
-                    this.loading = false;
+
+                    x.items.forEach(item => {
+                        this.items.push(this.formBuilder.group(item));
+                    });
+
+                    this.form.patchValue(x);
                 });
         }
     }
 
-    // convenience getters for easy access to form fields
+    // Convenience getter for easy access to form fields
     get f() { return this.form.controls; }
+
+    // Convenience getter for items FormArray
     get items() { return this.form.get('items') as FormArray; }
 
-    addItem(item?: RequestItem) {
-        const itemForm = this.formBuilder.group({
-            description: [item?.description || '', Validators.required],
-            quantity: [item?.quantity || 1, [Validators.required, Validators.min(1)]]
+    createItem(): FormGroup {
+        return this.formBuilder.group({
+            name: ['', Validators.required],
+            quantity: [1, [Validators.required, Validators.min(1)]],
+            description: ['']
         });
-        this.items.push(itemForm);
+    }
+
+    addItem() {
+        this.items.push(this.createItem());
     }
 
     removeItem(index: number) {
@@ -79,8 +85,8 @@ export class AddEditComponent implements OnInit {
 
     onSubmit() {
         this.submitted = true;
+        this.alertService.clear();
 
-        // stop here if form is invalid
         if (this.form.invalid) {
             return;
         }
@@ -94,19 +100,48 @@ export class AddEditComponent implements OnInit {
     }
 
     private createRequest() {
-        const requestPayload = {
-            ...this.form.value
-        };
-        this.requestService.create(requestPayload)
+        console.log('Create request form data: ', this.form.value);
+        this.requestService.create(this.form.value)
             .pipe(first())
             .subscribe({
-                next: () => {
+                next: (createdRequest) => {
+                    this.alertService.success('Request created successfully', { keepAfterRouteChange: true });
+                    
+                    // Create workflow for this request
+                    this.createRequestWorkflow(createdRequest);
+                    
                     this.router.navigate(['../'], { relativeTo: this.route });
                 },
                 error: error => {
-                    console.error('Error creating request:', error);
+                    this.alertService.error(error);
                     this.loading = false;
                 }
+            });
+    }
+    
+    private createRequestWorkflow(request: Request) {  
+        console.log('Create Request Workflow data: ', request);
+        
+        const workflowParams = {
+            type: 'Request',
+            status: 'completed', // or whatever status makes sense for your workflow
+            details: {
+                message: `New request created`,
+                requestId: request.id,
+                requestType: request.type,
+                items: request.items,
+                timestamp: new Date().toISOString()
+            },
+            employeeId: request.employeeId
+        };
+    
+        console.log('Creating workflow for request with params:', workflowParams);
+    
+        this.workflowService.create(workflowParams)
+            .pipe(first())
+            .subscribe({
+                next: () => console.log('Workflow record created for request'),
+                error: error => console.error('Error creating workflow record', error)
             });
     }
 
@@ -115,10 +150,11 @@ export class AddEditComponent implements OnInit {
             .pipe(first())
             .subscribe({
                 next: () => {
-                    this.router.navigate(['../'], { relativeTo: this.route });
+                    this.alertService.success('Update successful', { keepAfterRouteChange: true });
+                    this.router.navigate(['../../'], { relativeTo: this.route });
                 },
                 error: error => {
-                    console.error('Error updating request:', error);
+                    this.alertService.error(error);
                     this.loading = false;
                 }
             });

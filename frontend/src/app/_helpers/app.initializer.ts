@@ -1,7 +1,9 @@
+// _helpers/app.initializer.ts
+
 import { AccountService } from '@app/_services';
 
 export function appInitializer(accountService: AccountService) {
-    return () => new Promise(resolve => {
+    return () => new Promise<void>(resolve => {
         // attempt to refresh token on app start up to auto authenticate
         accountService.refreshToken()
             .subscribe()

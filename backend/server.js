@@ -1,30 +1,29 @@
+// server.js
+
 require('rootpath')();
 const express = require('express');
 const app = express();
-const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const errorHandler = require('_middleware/error-handler');
+const bodyParser = require('body-parser');
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-
-// allow cors requests from any origin and with credentials
 app.use(cors({ origin: (origin, callback) => callback(null, true), credentials: true }));
 
-// api routes
+// routes
 app.use('/accounts', require('./accounts/accounts.controller'));
-app.use('/employees', require('./employees/employee.controller'));
-app.use('/departments', require('./departments/department.controller'));
-app.use('/requests', require('./requests/request.controller'));
+app.use('/employees', require('./employees/employees.controller'));
+app.use('/departments', require('./departments/departments.controller'));
 app.use('/workflows', require('./workflows/workflows.controller'));
-// swagger docs route
-app.use('/api-docs', require('_helper/swagger'));
+app.use('/requests', require('./requests/request.controller'));
+app.use('/api-docs', require('./_helpers/swagger'));
 
-// global error handler
+// error handler
+const errorHandler = require('./_middleware/error-handler');
 app.use(errorHandler);
 
 // start server
 const port = process.env.NODE_ENV === 'production' ? (process.env.PORT || 80) : 4000;
-app.listen(port, () => console.log('Server listening on port ' + port));
+app.listen(port, () => console.log('Server listening on port', port));

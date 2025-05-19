@@ -1,31 +1,19 @@
+// admin/workflows/workflows-routing.module.ts
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 import { ListComponent } from './list.component';
-import { AddEditComponent } from './add-edit.component';
-import { AuthGuard } from '@app/_helpers';
-import { Role } from '@app/_models';
+import { OnboardingComponent } from './onboarding.component';
+import { ViewComponent } from './view.component';
 
 const routes: Routes = [
-    {
-        path: '', component: ListComponent,
-        canActivate: [AuthGuard],
-        data: { roles: [Role.Admin] }
-    },
-    {
-        path: 'add', component: AddEditComponent,
-        canActivate: [AuthGuard],
-        data: { roles: [Role.Admin] }
-    },
-    {
-        path: 'edit/:id', component: AddEditComponent,
-        canActivate: [AuthGuard],
-        data: { roles: [Role.Admin] }
-    }
+    { path: '', component: ListComponent },
+    { path: 'onboarding', component: OnboardingComponent },
+    { path: ':id', component: ViewComponent }
 ];
 
 @NgModule({
     imports: [RouterModule.forChild(routes)],
     exports: [RouterModule]
 })
-export class WorkflowsRoutingModule { } 
+export class WorkflowsRoutingModule { }

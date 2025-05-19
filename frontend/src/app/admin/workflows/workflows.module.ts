@@ -1,20 +1,25 @@
+// admin/workflows/workflows.module.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
 import { WorkflowsRoutingModule } from './workflows-routing.module';
 import { ListComponent } from './list.component';
-import { AddEditComponent } from './add-edit.component';
+import { OnboardingComponent } from './onboarding.component';
+import { ViewComponent } from './view.component';
 
 @NgModule({
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        FormsModule,
+        RouterModule,
         WorkflowsRoutingModule
     ],
     declarations: [
         ListComponent,
-        AddEditComponent
+        OnboardingComponent,
+        ViewComponent
     ]
 })
-export class WorkflowsModule { } 
+export class WorkflowsModule { }

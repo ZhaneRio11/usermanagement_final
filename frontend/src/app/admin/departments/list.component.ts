@@ -1,50 +1,35 @@
+// admin/departments/list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { DepartmentService } from '../../_services/department.service';
-import { Department } from '../../_models/department';
-import { EmployeeService } from '../../_services/employee.service';
-import { Employee } from '../../_models/employee';
+import { first } from 'rxjs/operators';
 
-@Component({
-    templateUrl: 'list.component.html'
-})
+import { Department } from '@app/_models';
+import { DepartmentService, AlertService } from '@app/_services';
+
+@Component({ templateUrl: 'list.component.html' })
 export class ListComponent implements OnInit {
-    departments: (Department & { employeeCount?: number })[] = [];
-    employees: Employee[] = [];
+    departments: Department[];
 
     constructor(
+        private router: Router,
         private departmentService: DepartmentService,
-        private employeeService: EmployeeService,
-        private router: Router
+        private alertService: AlertService
     ) { }
 
     ngOnInit() {
-        this.loadDepartments();
+        this.departmentService.getAll()
+            .pipe(first())
+            .subscribe(departments => this.departments = departments);
     }
 
-    loadDepartments() {
-        this.employeeService.getAll().subscribe(employees => {
-            this.employees = employees;
-            this.departmentService.getAll().subscribe(departments => {
-                this.departments = departments.map(dept => ({
-                    ...dept,
-                    employeeCount: employees.filter(emp => emp.department === dept.name).length
-                }));
+    deleteDepartment(id: number) {
+        const department = this.departments.find(x => x.id === id);
+        // department.isDeleting = true;
+        this.departmentService.delete(id)
+            .pipe(first())
+            .subscribe(() => {
+                this.departments = this.departments.filter(x => x.id !== id);
+                this.alertService.success('Department deleted successfully', { keepAfterRouteChange: true });
             });
-        });
     }
-
-    add() {
-        this.router.navigate(['/admin/departments/add']);
-    }
-
-    edit(id: string) {
-        this.router.navigate(['/admin/departments/edit', id]);
-    }
-
-    delete(id: string) {
-        if (confirm('Are you sure you want to delete this department?')) {
-            this.departmentService.delete(id).subscribe(() => this.loadDepartments());
-        }
-    }
-} 
+}

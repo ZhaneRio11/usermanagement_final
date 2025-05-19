@@ -1,117 +1,78 @@
+// admin/workflows/list.component.ts
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { first } from 'rxjs/operators';
-import { Workflow } from '@app/_models/workflow';
-import { WorkflowService } from '@app/_services/workflow.service';
-import { AlertService } from '@app/_services/alert.service';
 
-@Component({
-    templateUrl: 'list.component.html',
-    styleUrls: ['./list.component.css']
-})
+import { Employee } from '@app/_models';
+import { EmployeeService, WorkflowService, AlertService } from '@app/_services';
+
+@Component({ templateUrl: 'list.component.html' })
 export class ListComponent implements OnInit {
-    workflows: Workflow[] = [];
+    employees: Employee[] = [];
+    selectedEmployeeId: number | null = null;
+    workflows: any[] = [];
     loading = false;
-    employeeId: string = null;
-    selectedStatus: string = '';
-    selectedType: string = '';
 
     constructor(
+        private router: Router,
+        private route: ActivatedRoute,
+        private employeeService: EmployeeService,
         private workflowService: WorkflowService,
-        private alertService: AlertService,
-        private route: ActivatedRoute
-    ) {}
+        private alertService: AlertService
+    ) { }
 
     ngOnInit() {
-        console.log('Initializing workflow list component');
-        // Get employeeId from query params
+        this.loadEmployees();
+        
+        // Check for employeeId in query params
         this.route.queryParams.subscribe(params => {
-            console.log('Query params:', params);
-            this.employeeId = params['employeeId'];
-            console.log('Employee ID:', this.employeeId);
-            if (this.employeeId) {
-                this.loadEmployeeWorkflows();
-            } else {
-                this.loadWorkflows();
+            if (params['employeeId']) {
+                this.onEmployeeSelect(Number(params['employeeId']));
             }
         });
     }
 
-    loadWorkflows() {
-        console.log('Loading all workflows');
+    loadEmployees() {
         this.loading = true;
-        this.workflowService.getAll()
+        this.employeeService.getAll()
             .pipe(first())
             .subscribe({
-                next: workflows => {
-                    console.log('Workflows loaded:', workflows);
+                next: (employees) => {
+                    this.employees = employees;
+                    this.loading = false;
+                },
+                error: (error) => {
+                    this.alertService.error(error);
+                    this.loading = false;
+                }
+            });
+    }
+
+    onEmployeeSelect(employeeId: number) {
+        this.selectedEmployeeId = employeeId;
+        this.loadWorkflows(employeeId);
+        
+        // Update URL with employeeId
+        this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { employeeId },
+            queryParamsHandling: 'merge'
+        });
+    }
+
+    loadWorkflows(employeeId: number) {
+        this.loading = true;
+        this.workflowService.getByEmployee(employeeId)
+            .pipe(first())
+            .subscribe({
+                next: (workflows) => {
                     this.workflows = workflows;
                     this.loading = false;
                 },
-                error: error => {
-                    console.error('Error loading workflows:', error);
-                    this.alertService.error('Error loading workflows: ' + error.message);
+                error: (error) => {
+                    this.alertService.error(error);
                     this.loading = false;
                 }
             });
     }
-
-    loadEmployeeWorkflows() {
-        if (!this.employeeId) {
-            console.error('Employee ID is missing');
-            this.alertService.error('Employee ID is required');
-            return;
-        }
-
-        console.log('Loading workflows for employee:', this.employeeId);
-        this.loading = true;
-        this.workflowService.getByEmployeeId(this.employeeId)
-            .pipe(first())
-            .subscribe({
-                next: workflows => {
-                    console.log('Employee workflows loaded:', workflows);
-                    this.workflows = workflows;
-                    this.loading = false;
-                },
-                error: error => {
-                    console.error('Error loading employee workflows:', error);
-                    this.alertService.error('Error loading employee workflows: ' + error.message);
-                    this.loading = false;
-                }
-            });
-    }
-
-    filterWorkflows() {
-        if (this.employeeId) {
-            this.loadEmployeeWorkflows();
-        } else {
-            this.loadWorkflows();
-        }
-    }
-
-    updateStatus(id: number, status: string) {
-        console.log('Updating workflow status:', { id, status });
-        this.workflowService.updateStatus(id, status)
-            .pipe(first())
-            .subscribe({
-                next: () => {
-                    console.log('Workflow status updated successfully');
-                    this.alertService.success('Workflow status updated successfully');
-                    if (this.employeeId) {
-                        this.loadEmployeeWorkflows();
-                    } else {
-                        this.loadWorkflows();
-                    }
-                },
-                error: error => {
-                    console.error('Error updating workflow status:', error);
-                    this.alertService.error('Error updating workflow status: ' + error.message);
-                }
-            });
-    }
-
-    onStatusChange(workflow: Workflow, newStatus: string) {
-        if (workflow.status === newStatus) return;
-        this.updateStatus(workflow.id, newStatus);
-    }
-} 
+}

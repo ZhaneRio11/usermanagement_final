@@ -1,13 +1,13 @@
+// admin/accounts.module
 
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-import { AccountsRoutingModule } from './accounts-routing.module'; 
+import { AccountsRoutingModule } from './accounts-routing.module';
 import { ListComponent } from './list.component';
 import { AddEditComponent } from './add-edit.component';
 
-@NgModule({ 
+@NgModule({
     imports: [
         CommonModule,
         ReactiveFormsModule,
@@ -18,4 +18,4 @@ import { AddEditComponent } from './add-edit.component';
         AddEditComponent
     ]
 })
-export class AccountsModule {}
+export class AccountsModule { }

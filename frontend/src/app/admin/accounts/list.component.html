@@ -1,61 +1,39 @@
+<!-- admin/list.component -->
+
 <h1>Accounts</h1>
 <p>All accounts from secure (admin only) API endpoint:</p>
-<a routerLink="add" class="btn btn-sm btn-success mb-2">Create Account</a>
+<a routerLink="/admin/accounts/add" class="btn btn-sm btn-success mb-2">Create Account</a>
 
 <table class="table table-striped">
-  <thead>
-    <tr>
-      <th style="width:25%">Name</th>
-      <th style="width:25%">Email</th>
-      <th style="width:20%">Role</th>
-      <th style="width:15%">Status</th>
-      <th style="width:15%">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Loading state -->
-    <tr *ngIf="!accounts || accounts.length === 0">
-      <td colspan="5" class="text-center">
-        <span class="spinner-border spinner-border-lg align-center"></span>
-        Loading accounts...
-      </td>
-    </tr>
-
-    <!-- Accounts list -->
-    <tr *ngFor="let account of accounts">
-      <td>{{ account.title }} {{ account.firstName }} {{ account.lastName }}</td>
-      <td>{{ account.email }}</td>
-      <td>{{ account.role }}</td>
-      <td>
-        <span [ngClass]="{'badge': true, 'bg-success': account.isActive, 'bg-danger': !account.isActive}">
-          {{ account.isActive ? 'Active' : 'Inactive' }}
-        </span>
-      </td>
-      <td style="white-space: nowrap">
-        <a routerLink="edit/{{ account.id }}" class="btn btn-sm btn-primary mr-1">Edit</a>
-
-        <!-- Deactivate button -->
-        <button 
-          (click)="deactivateAccount(account.id)" 
-          class="btn btn-sm btn-warning mr-1" 
-          [disabled]="!account.isActive || account.isDeactivating"
-          [class.disabled]="account.isDeactivating"
-          aria-label="Deactivate account">
-          <span *ngIf="account.isDeactivating" class="spinner-border spinner-border-sm"></span>
-          <span *ngIf="!account.isDeactivating">Deactivate</span>
-        </button>
-
-        <!-- Activate button -->
-        <button 
-          (click)="activateAccount(account.id)" 
-          class="btn btn-sm btn-success" 
-          [disabled]="account.isActive || account.isActivating"
-          [class.disabled]="account.isActivating"
-          aria-label="Activate account">
-          <span *ngIf="account.isActivating" class="spinner-border spinner-border-sm"></span>
-          <span *ngIf="!account.isActivating">Activate</span>
-        </button>
-      </td>
-    </tr>
-  </tbody>
+    <thead>
+        <tr>
+            <th style="width:30%">Name</th>
+            <th style="width:30%">Email</th>
+            <th style="width:30%">Role</th>
+            <th style="width:30%">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let account of accounts">
+            <td>{{ account.firstName }} {{ account.lastName }}</td>
+            <td>{{ account.email }}</td>
+            <td>{{ account.role }}</td>
+            <td>
+                <span class="badge" [ngClass]="{
+                    'badge-success': account.status === 'active',
+                    'badge-danger': account.status === 'inactive'
+                }">
+                    {{ account.status.charAt(0).toUpperCase() + account.status.slice(1).toLowerCase() }}
+                </span>
+            </td>
+            <td style="white-space: nowrap">
+                <button [routerLink]="['/admin/accounts/edit', account.id]" class="btn btn-sm btn-primary mr-1">Edit</button>
+            </td>
+        </tr>
+        <tr *ngIf="!accounts">
+            <td colspan="4" class="text-center">
+                <span class="spinner-border spinner-border-lg align-center"></span>
+            </td>
+        </tr>
+    </tbody>
 </table>

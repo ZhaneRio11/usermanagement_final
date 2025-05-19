@@ -1,6 +1,9 @@
+// admin/employees/employees.module.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
 import { EmployeesRoutingModule } from './employees-routing.module';
 import { ListComponent } from './list.component';
 import { AddEditComponent } from './add-edit.component';
@@ -10,7 +13,7 @@ import { TransferComponent } from './transfer.component';
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        FormsModule,
+        RouterModule,
         EmployeesRoutingModule
     ],
     declarations: [
@@ -19,4 +22,4 @@ import { TransferComponent } from './transfer.component';
         TransferComponent
     ]
 })
-export class EmployeesModule { } 
+export class EmployeesModule { }

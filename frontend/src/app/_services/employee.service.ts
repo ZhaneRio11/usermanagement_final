@@ -1,43 +1,37 @@
+// _services/employee.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import { Employee } from '@app/_models/employee';
+import { Employee } from '@app/_models';
+
+const baseUrl = `${environment.apiUrl}/employees`;
 
 @Injectable({ providedIn: 'root' })
 export class EmployeeService {
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) { }
 
-    getAll() {
-        return this.http.get<Employee[]>(`${environment.apiUrl}/employees`);
+    getAll(): Observable<Employee[]> {
+        return this.http.get<Employee[]>(baseUrl);
     }
 
-    getById(id: string) {
-        return this.http.get<Employee>(`${environment.apiUrl}/employees/${id}`);
+    getById(id: number): Observable<Employee> {
+        return this.http.get<Employee>(`${baseUrl}/${id}`);
     }
 
-    create(employee: Employee) {
-        return this.http.post(`${environment.apiUrl}/employees`, employee);
+    create(params: any): Observable<Employee> {
+        return this.http.post<Employee>(baseUrl, params);
     }
 
-    update(id: string, employee: Employee) {
-        return this.http.put(`${environment.apiUrl}/employees/${id}`, employee);
+    update(id: number, params: any): Observable<Employee> {
+        return this.http.put<Employee>(`${baseUrl}/${id}`, params);
     }
 
-    delete(id: string) {
-        return this.http.delete(`${environment.apiUrl}/employees/${id}`);
+    delete(id: number): Observable<any> {
+        return this.http.delete(`${baseUrl}/${id}`);
     }
 
-    transfer(employeeId: string, departmentId: number) {
-        if (!employeeId || !departmentId) {
-            throw new Error('Employee ID and department ID are required');
-        }
-        console.log('Transfer request:', { 
-            employeeId, 
-            newDepartmentId: departmentId 
-        });
-        return this.http.post<any>(`${environment.apiUrl}/employees/transfer`, {
-            employeeId: employeeId.toString(),
-            newDepartmentId: Number(departmentId)
-        });
+    transfer(id: number, departmentId: number): Observable<Employee> {
+        return this.http.post<Employee>(`${baseUrl}/${id}/transfer`, { departmentId });
     }
-} 
+}

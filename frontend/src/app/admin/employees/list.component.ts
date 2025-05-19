@@ -1,40 +1,35 @@
+// admin/employees/list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { EmployeeService } from '@app/_services/employee.services';
-import { Employee } from '@app/_models/employee';
+import { first } from 'rxjs/operators';
 
-@Component({
-    templateUrl: 'list.component.html'
-})
+import { Employee } from '@app/_models';
+import { EmployeeService, AlertService } from '@app/_services';
+
+@Component({ templateUrl: 'list.component.html' })
 export class ListComponent implements OnInit {
-    employees: Employee[] = [];
+    employees: Employee[];
 
     constructor(
+        private router: Router,
         private employeeService: EmployeeService,
-        private router: Router
+        private alertService: AlertService
     ) { }
 
     ngOnInit() {
-        this.employeeService.getAll().subscribe(employees => this.employees = employees);
+        this.employeeService.getAll()
+            .pipe(first())
+            .subscribe(employees => this.employees = employees);
     }
 
-    add() {
-        this.router.navigate(['/admin/employees/add']);
+    deleteEmployee(id: number) {
+        const employee = this.employees.find(x => x.id === id);
+        // employee.isDeleting = true;
+        this.employeeService.delete(id)
+            .pipe(first())
+            .subscribe(() => {
+                this.employees = this.employees.filter(x => x.id !== id);
+                this.alertService.success('Employee deleted successfully', { keepAfterRouteChange: true });
+            });
     }
-
-    edit(id: number) {
-        this.router.navigate(['/admin/employees/edit', id]);
-    }
-
-    viewRequests(id: number) {
-        this.router.navigate(['/admin/requests'], { queryParams: { employeeId: id } });
-    }
-
-    viewWorkflows(id: number) {
-        this.router.navigate(['/admin/workflows'], { queryParams: { employeeId: id } });
-    }
-
-    transfer(id: number) {
-        this.router.navigate(['/admin/employees/transfer', id]);
-    }
-} 
+}

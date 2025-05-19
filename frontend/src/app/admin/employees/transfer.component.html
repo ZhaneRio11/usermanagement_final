@@ -1,46 +1,33 @@
-<div class="modal">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Transfer Employee</h5>
-                <button type="button" class="btn-close" (click)="cancel()"></button>
-            </div>
-            <div class="modal-body">
-                <div *ngIf="error" class="alert alert-danger">{{error}}</div>
-                <div *ngIf="success" class="alert alert-success">{{success}}</div>
-
-                <div class="alert alert-info mb-3">
-                    <strong>Employee:</strong> {{employee?.employeeId}} - {{employee?.account}}
-                    <br>
-                    <strong>Current Department:</strong> {{employee?.department}}
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">New Department</label>
-                    <select class="form-select" [(ngModel)]="departmentId" [ngClass]="{ 'is-invalid': submitted && !departmentId }">
-                        <option [ngValue]="null">Select Department</option>
-                        <option *ngFor="let dept of departments" [value]="dept.id">{{dept.name}}</option>
-                    </select>
-                    <div *ngIf="submitted && !departmentId" class="invalid-feedback">
-                        Department is required
-                    </div>
-                </div>
-
-                <div *ngIf="loading" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
-                <button class="btn btn-primary" (click)="transfer()" [disabled]="loading">
-                    <i class="fas fa-exchange-alt"></i> Transfer
-                </button>
-            </div>
+<!-- admin/employees/transfer.component.html -->
+<div class="card">
+    <div class="card-header">
+        Transfer Employee
+    </div>
+    <div class="card-body">
+        <div *ngIf="employee" class="mb-4">
+            <h5>Employee Details</h5>
+            <p><strong>Name:</strong> {{employee.account?.firstName}} {{employee.account?.lastName}}</p>
+            <p><strong>Current Department:</strong> {{employee.department?.name || 'None'}}</p>
         </div>
+        
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="departmentId">New Department</label>
+                <select formControlName="departmentId" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.departmentId.errors }">
+                    <option value="">-- Select Department --</option>
+                    <option *ngFor="let department of departments" [value]="department.id">{{department.name}}</option>
+                </select>
+                <div *ngIf="submitted && f.departmentId.errors" class="invalid-feedback">
+                    <div *ngIf="f.departmentId.errors.required">Department is required</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <button [disabled]="loading" class="btn btn-primary">
+                    <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                    Transfer
+                </button>
+                <a routerLink="../../" class="btn btn-link">Cancel</a>
+            </div>
+        </form>
     </div>
 </div>
-<div class="modal-backdrop"></div>

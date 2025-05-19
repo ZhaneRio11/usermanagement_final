@@ -1,14 +1,26 @@
-export interface Workflow {
-    id?: number;
-    employeeId: string;
-    type: 'onboarding' | 'offboarding' | 'transfer' | 'promotion';
-    status: 'pending' | 'in_progress' | 'completed' | 'rejected';
-    startDate: Date;
-    endDate?: Date;
-    description?: string;
-    currentStep: number;
-    totalSteps: number;
-    metadata?: any;
-    createdAt?: Date;
-    updatedAt?: Date;
-} 
+// _models/workflow.ts
+import { Employee } from './employee';
+
+export class Workflow {
+    id: number;
+    type: string;
+    details: any;
+    status: string;
+    created: Date;
+    updated: Date;
+    employee: {
+        id: number;
+        employeeId: string;
+        account: {
+            firstName: string;
+            lastName: string;
+            email: string;
+        }
+    };
+
+    constructor(init?: Partial<Workflow>) {
+        if (init) {
+            Object.assign(this, init);
+        }
+    }
+}

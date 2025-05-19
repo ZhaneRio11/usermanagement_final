@@ -1,15 +1,15 @@
+// admin/departments/add-edit.component.ts
 import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { DepartmentService } from '../../_services/department.service';
-import { Department } from '../../_models/department';
+import { first } from 'rxjs/operators';
 
-@Component({
-    templateUrl: 'add-edit.component.html'
-})
+import { DepartmentService, AlertService } from '@app/_services';
+
+@Component({ templateUrl: 'add-edit.component.html' })
 export class AddEditComponent implements OnInit {
     form: FormGroup;
-    id: string;
+    id: number;
     isAddMode: boolean;
     loading = false;
     submitted = false;
@@ -18,7 +18,8 @@ export class AddEditComponent implements OnInit {
         private formBuilder: FormBuilder,
         private route: ActivatedRoute,
         private router: Router,
-        private departmentService: DepartmentService
+        private departmentService: DepartmentService,
+        private alertService: AlertService
     ) { }
 
     ngOnInit() {
@@ -32,7 +33,10 @@ export class AddEditComponent implements OnInit {
 
         if (!this.isAddMode) {
             this.departmentService.getById(this.id)
-                .subscribe(x => this.form.patchValue(x));
+                .pipe(first())
+                .subscribe(x => {
+                    this.form.patchValue(x);
+                });
         }
     }
 
@@ -40,9 +44,12 @@ export class AddEditComponent implements OnInit {
 
     onSubmit() {
         this.submitted = true;
+        this.alertService.clear();
+
         if (this.form.invalid) {
             return;
         }
+
         this.loading = true;
         if (this.isAddMode) {
             this.createDepartment();
@@ -53,11 +60,14 @@ export class AddEditComponent implements OnInit {
 
     private createDepartment() {
         this.departmentService.create(this.form.value)
+            .pipe(first())
             .subscribe({
                 next: () => {
-                    this.router.navigate(['/admin/departments'], { relativeTo: this.route });
+                    this.alertService.success('Department created successfully', { keepAfterRouteChange: true });
+                    this.router.navigate(['../'], { relativeTo: this.route });
                 },
                 error: error => {
+                    this.alertService.error(error);
                     this.loading = false;
                 }
             });
@@ -65,13 +75,16 @@ export class AddEditComponent implements OnInit {
 
     private updateDepartment() {
         this.departmentService.update(this.id, this.form.value)
+            .pipe(first())
             .subscribe({
                 next: () => {
-                    this.router.navigate(['/admin/departments'], { relativeTo: this.route });
+                    this.alertService.success('Update successful', { keepAfterRouteChange: true });
+                    this.router.navigate(['../../'], { relativeTo: this.route });
                 },
                 error: error => {
+                    this.alertService.error(error);
                     this.loading = false;
                 }
             });
     }
-} 
+}
