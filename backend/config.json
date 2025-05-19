@@ -1,15 +1,15 @@
 {
     "database": {
-        "url": "postgresql://postgres:JoKHPbefFwzFzTuAiuNNyZHTAkrQjLmT@switchyard.proxy.rlwy.net:58065/railway",
+        "url": "postgresql://postgres:YTFUoTUHKtNnRnahcUrLLJGMxFHRYBwn@shortline.proxy.rlwy.net:51812/railway",
         "ssl": true
     },
-    "secret": "secretgani",
+    "secret": "secret",
     "smtpOptions": {
         "host": "smtp.gmail.com",
         "port": 587,
         "auth": {
-            "user": "achives1@gmail.com",
-            "pass": "imhj swoh rmvc goko"
+            "user": "zhanerio94@gmail.com",
+            "pass": "hlmp oxvl rupb cqwb"
         }
     }
 }
