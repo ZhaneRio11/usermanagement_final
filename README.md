@@ -1,14 +1,15 @@
 #  User Management System
 
 ## 👥 Team
-- Poland Diosana
-- Franz Adrian Nacar
+-   Olandag  Ronel
+-   Minoza  Zhane Fate
+-   Alquisola  Lee
+-   Camingao Lorane
 ---
 
 ## Live Demos
-- **Frontend**: [https://user-management-system-angular-master-delta.vercel.app/account/login?returnUrl=%2F](https://user-management-system-angular-master-delta.vercel.app/)
-- **Backend API**: [https://postgres-production-a08f8.up.railway.app/](https://user-management-system-angular-master-production-08a9.up.railway.app)
-- **API Docs**: [https://user-management-system-angular-master-production.up.railway.app/api-docs](https://user-management-system-angular-master-production.up.railway.app/api-docs)
+- **Frontend**: https://usermanagement-final-git-main-zhanes-projects-04a9dbfd.vercel.app/
+- **Backend API**: https://usermanagementfinal-production.up.railway.app
 
 ### Frontend
 - **Framework**: Angular 17.3.12
@@ -41,8 +42,8 @@
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/franzadrian/user-management-system-angular-master.git
-   cd User-Management-System-Angular-master
+   git clone https://github.com/ZhaneRio11/usermanagement_final.git
+   cd usermanagement_final
    ```
 
 2. **Backend Setup**

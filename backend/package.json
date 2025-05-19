@@ -1,7 +1,7 @@
 {
   "name": "user-management-system",
   "version": "1.0.0",
-  "description": "Group L Project Activity: Full-Stack Application Development Team Structure",
+  "description": "Group J Project Activity: Full-Stack Application Development Team Structure",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/franzadrian/user-management-system-angular-master"
+    "url": "https://github.com/ZhaneRio11/usermanagement_final"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/franzadrian/user-management-system-angular-master/issues"
+    "url": "https://github.com/ZhaneRio11/usermanagement_final/issues"
   },
-  "homepage": "https://github.com/franzadrian/user-management-system-angular-master#readme",
+  "homepage": "https://github.com/ZhaneRio11/usermanagement_final#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
